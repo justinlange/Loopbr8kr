@@ -1,0 +1,476 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+ 	<link rel="stylesheet" type="text/css" href="style.css">
+    <meta name="viewport" content="width=320; user-scalable=no" />
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+	  <script type="text/javascript" charset="utf-8" src="phonegap-1.3.0.js"></script>
+	  <script type="text/javascript" charset="utf-8" src="video.js"></script>
+	  <script type="text/javascript" charset="utf-8">
+      
+	  
+	  	var mediaCounter = 1;
+	  	var text = 1;
+	  	var accelerationCounter = 1;
+	  
+	  	
+        function init() {
+            document.addEventListener("deviceready", onDeviceReady, true);
+            document.addEventListener("resume", onResume, false);
+            document.addEventListener("pause", onPause, false);
+            document.addEventListener("backbutton", onBackKey, false);
+        }   
+        
+		  function onBackKey() {
+		    navigator.notification.confirm(
+	   		        'Seems like your life could use a good "shake", why "press" your luck?',  // message
+	   		        onBackKeyConfirm,              // callback to invoke with index of button pressed
+	   		        'Backing out already?',            // title
+	   		        'OK'          // buttonLabels
+	   		    );        
+		    }
+        
+        touchMove = function(event) {
+        	// Prevent scrolling
+        	event.preventDefault();
+			console.log('text: ' + text);
+			console.log('mediaCounter: ' + mediaCounter);  
+			console.log('videoNumber: ' + videoNumber);
+        	}
+        
+        function onBackKeyConfirm() {
+        	console.log('we have hit the back key');
+        }
+        
+        function onBackKeyConform() {
+			navigator.notification.vibrate(250);
+        }
+        
+        function endSplash() {
+        	
+        	splashId.style.display = 'none';
+        	loadingBars.style.display = 'none';
+        	preferencesButtonDiv.style.display = 'static';
+        	favoritesButtonDiv.style.display = 'static';
+   			preferencesoff.style.display = 'block';	
+			favoritesoff.style.display = 'block';
+        	adviceDiv1.style.display = 'block';
+     		// playAudio("/android_asset/www/audio/gong.wav");
+     		playAudio("/android_asset/www/quietaudio/gong.mp3");
+
+         }
+        
+        function preEndSplash() {
+        	subwayLogoDiv.style.display = 'static';
+        	subwayAnimation.style.display = 'block';
+        }
+        
+        function postSplash() {
+        	subwayAnimation.style.display = 'none';        	
+        }
+              
+        function onDeviceReady() {
+            startWatch();
+    		playAudio("/android_asset/www/audio/loadcracklethunder.mp3");
+    		setTimeout("endSplash()",4000);
+    		setTimeout("preEndSplash()", 2500);
+    		setTimeout("postSplash()", 7500);
+
+
+        }
+        
+        function onPause() {
+               stopWatch();
+        }
+        
+        function onResume() {
+            startWatch();
+            
+            if(videoNumber == 5){
+            	stuckInALoopAlert();
+            }
+        }
+
+        // Start watching the acceleration
+        //
+        function startWatch() {
+
+            // Update acceleration every second
+            var options = { frequency: 100 };
+
+            watchID = navigator.accelerometer.watchAcceleration(onSuccess, onError, options);
+        }
+
+        // Stop watching the acceleration
+        //
+        function stopWatch() {
+            if (watchID) {
+                navigator.accelerometer.clearWatch(watchID);
+                watchID = null;
+            }
+        }
+
+        // onSuccess: Get a snapshot of the current acceleration
+        //
+        function resetAccelerationCounter() {
+        	accelerationCounter = 1;
+        }
+        
+        function onSuccess(acceleration) {
+        	var absoluteAcceleration = Math.sqrt(acceleration.x * acceleration.x + acceleration.y * acceleration.y + acceleration.z * acceleration.z);
+       		
+        		if (absoluteAcceleration > 15) {
+        			accelerationCounter++;
+        			setTimeout("resetAccelerationCounter()", 500);
+        		
+        			if(accelerationCounter > 3) {
+            			navigator.notification.vibrate(750);
+        				accelerationCounter = 1;
+        				console.log('we are doing something:');
+        				console.log('text:' + text);
+        				console.log('mediaCounter:' + mediaCounter);
+     				
+	        			
+        				if (mediaCounter < 3) {
+	        				displayTexts();
+	        				if (text == 2 || text == 3 || text == 5 || text == 6 || text == 8 || text == 9 || text == 10) {
+	        					mediaCounter+=2;
+	       					} else if (text == 10 || text == 11 || text == 12) {
+	       						mediaCounter = 1;
+	       					} else { 
+	       						mediaCounter++;
+	       					}
+
+        				}else if (mediaCounter >= 3) {
+		        			playVideo();
+		        			mediaCounter = 1;
+	        			}
+	        		}
+        		}
+	       	}
+	       	
+        
+
+        // onError: Failed to get the acceleration5
+        //
+        function onError() {
+            alert('onError!');
+        }
+
+        function displayTexts() {
+    		console.log('displaytext is being called and text is: ' + text);
+    		var eleToHideName = ('adviceDiv' + text);
+    		var eleToShowName = ('adviceDiv' + (text + 1));
+
+    		var eleToHide = document.getElementById(eleToHideName);
+    		var eleToShow = document.getElementById(eleToShowName);
+
+    	
+    		if (text > 12) {
+    			playAudio("/android_asset/www/audio/happyNote2.mp3");
+    			subwayAlertSecond();
+    		} else if (text > 0 && text < 13) {
+    			eleToHide.style.display = 'none';
+    			eleToShow.style.display = 'block';
+    			playTextAudio();
+    			text+=1;	
+    		}
+        }	
+    			
+        
+    	var audioCounter = 0;
+    	
+		function playTextAudio() {
+			if(audioCounter > 6) {
+				audioCounter = 1;
+			} else {
+				audioCounter++;
+			}
+			
+			
+			
+			/*
+			//louder
+			
+			if(audioCounter == 1)playAudio("/android_asset/www/audio/textFunnyShock.mp3");
+			if(audioCounter == 2)playAudio("/android_asset/www/audio/textThunderBuzz.mp3");
+			if(audioCounter == 3)playAudio("/android_asset/www/audio/textTimeRip.mp3");
+			if(audioCounter == 4)playAudio("/android_asset/www/audio/textThunderLonger.mp3");
+			if(audioCounter == 5)playAudio("/android_asset/www/audio/textCrackleCut.mp3");
+			if(audioCounter == 6)playAudio("/android_asset/www/audio/textScatterThunder.mp3");
+			if(audioCounter == 7)playAudio("/android_asset/www/audio/textTimeRip.mp3");
+	
+			*/
+			
+			if(audioCounter == 1)playAudio("/android_asset/www/quietaudio/textFunnyShock.mp3");
+			if(audioCounter == 2)playAudio("/android_asset/www/quietaudio/textThunderBuzz.mp3");
+			if(audioCounter == 3)playAudio("/android_asset/www/quietaudio/textTimeRip.mp3");
+			if(audioCounter == 4)playAudio("/android_asset/www/quietaudio/textThunderLonger.mp3");
+			if(audioCounter == 5)playAudio("/android_asset/www/quietaudio/textCrackleCut.mp3");
+			if(audioCounter == 6)playAudio("/android_asset/www/quietaudio/textScatterThunder.mp3");
+			if(audioCounter == 7)playAudio("/android_asset/www/quietaudio/textTimeRip.mp3");
+		
+		
+		}
+    		
+    	
+        
+    	function playAudio(url) {
+    		// Play the audio file at url
+    		var my_media = new Media(url,
+    		// success callback
+    		function() {
+    		},
+    		// error callback
+    		function(err) {
+    			console.log("playAudio():Audio Error: " + err);
+    		});
+
+    		// Play audio
+    		my_media.play();
+    	}
+
+    	
+    	
+/*      
+			
+				// for local asset folder, needs cordova 
+				
+				var videoArray = new Array(
+
+     			"file:///android_asset/www/video/what_really_matters.3gp",
+     			"file:///android_asset/www/video/what_really_matters.3gp",
+     			"file:///android_asset/www/video/be_a_boxer.3gp",
+     			"file:///android_asset/www/video/what_did_you_ask_me.3gp",
+     			"file:///android_asset/www/video/best_friends.3gp",
+     			"file:///android_asset/www/video/quantum_phenomena.3gp",
+     			"file:///android_asset/www/video/love_and_heartbreak.3gp",
+     			"file:///android_asset/www/video/im_in_a_loop.3gp"
+
+    			); */
+    			
+    	
+    	//for the SD card		
+    	var videoArray = new Array(
+
+    			"file:///sdcard/video/what_really_matters.3gp",
+    			"file:///sdcard/video/be_a_boxer.3gp",
+    			"file:///sdcard/video/quantum_phenomena.3gp",
+    			"file:///sdcard/video/what_did_you_ask_me.3gp",
+    			"file:///sdcard/video/im_in_a_loop.3gp",
+    			"file:///sdcard/video/best_friends.3gp",
+    			"file:///sdcard/video/love_and_heartbreak.3gp"
+
+    	    			); 		
+    	
+    	
+    	//for server
+    	
+    	/* var videoArray = new Array(
+
+    			"http://www.magichatfilms.com/loopbr8kr/what_really_matters.3gp",
+    			"http://www.magichatfilms.com/loopbr8kr/be_a_boxer.3gp",
+   				"http://www.magichatfilms.com/loopbr8kr/what_did_you_ask_me.3gp",
+   				"http://www.magichatfilms.com/loopbr8kr/best_friends.3gp",
+    			"http://www.magichatfilms.com/loopbr8kr/quantum_phenomena.3gp",
+   				"http://www.magichatfilms.com/loopbr8kr/love_and_heartbreak.3gp",
+ 				"http://www.magichatfilms.com/loopbr8kr/im_in_a_loop.3gp"
+
+    			);  */
+
+    	var videoNumber = 0;
+
+   		function playVideo() {
+   			console.log('the videoNumber is:' + videoNumber);
+   			window.plugins.videoPlayer.play(videoArray[videoNumber]);
+    		videoNumber++;
+    		
+    		}
+
+   		function subwayAlertSecond() {
+   			navigator.notification.alert(
+   							'If you havent broken your loop by now, I dunno what will. You could always try the new breakfast sandwich at Subway....', // message
+   							goGetBreakfast, // callback
+   							'Break your loop!', // LoopBr8kr!
+   							'Take me there!' // take me there!
+   					);
+   		}
+
+   		function goGetBreakfast() {
+   			window.location = "http://maps.google.com/maps?q=Subway Sandwiches";
+   		} 
+   		
+   		function goWatchTheVideos() {
+   			window.location = "http://tinyurl.com/subwayvideos";
+   		}
+   		
+   		
+   		function favoritesAlert() { 
+   			favoriteson.style.display = 'block';
+   			favoritesoff.style.display = 'none';
+   			navigator.notification.confirm(
+   		        'Favorites? Please. Bookmarks only keep you stuck in your loop. If you want a REAL favorite, try something off the new breakfast menu',  // message
+   		        onFavoritesConfirm,              // callback to invoke with index of button pressed
+   		        'LoopBr8kr! Favorites',            // title
+   		        'More Advice'          // buttonLabels
+   		    );
+   		}
+   		
+   		function onFavoritesConfirm(button) {
+   			favoriteson.style.display = 'none';
+   			favoritesoff.style.display = 'block';
+   				if(button == 2){
+   					goGetBreakfast();
+   				}
+   			}
+   		
+   		function stuckInALoopAlert() {
+   			navigator.notification.confirm(
+   		        "Good job! Chris isn't going to have to eat penut butter sandwiches forever. Now how about you?",  // message
+   		        stuckInALoopConfirm,              // callback to invoke with index of button pressed
+   		        'That was close...',            // title
+   		        'Break me out!'          // buttonLabels
+   		    );
+   		}
+   		
+   		function stuckInALoopConfirm() {
+   			console.log('we are out of our loop');
+   		}
+   		
+   		
+   		function preferencesAlert() { 
+   			preferenceson.style.display = 'block';
+   			preferencesoff.style.display = 'none';
+   			navigator.notification.confirm(
+   		        'I like to be shaken, not stirred. And no dropping, please',  // message
+   		        onPreferencesConfirm,              // callback to invoke with index of button pressed
+   		        'LoopBr8kr! Preferences',            // title
+   		        'OK'          // buttonLabels
+   		    );
+   		}
+   		
+   		function onPreferencesConfirm() {
+   			preferenceson.style.display = 'none';
+   			preferencesoff.style.display = 'block';	
+   		}  
+        
+        
+</script>  
+</head>
+
+<body onload="init()" id="stage" class="theme">
+
+<div id='container' ontouchmove="touchMove(event);">
+
+
+	<div id='loadingBars'>
+	 	<div id='loadingBarOneId'>
+	 		Accessing Collective Unconscious:
+			<img src="gif/loadingsmall.gif"/>		
+		</div> 
+	</div>
+		
+
+
+ 	<div id='buttonDiv'>
+ 		<div id ='favoritesButtonDiv'  onclick="favoritesAlert()" style="display: block;">
+				<img src="buttons/favoriteson.png" id="favoriteson" style="display: none;"/>
+				<img src="buttons/favoritesoff.png" id="favoritesoff" style="display: none;"/>
+			</div>
+			
+			<div id ='preferencesButtonDiv' onclick="preferencesAlert()" style="display: block;">
+				<img src="buttons/preferenceson.png" id="preferenceson" style="display: none;"/>
+				<img src="buttons/preferencesoff.png" id="preferencesoff" style="display: none;"/>
+			</div>
+			<div id='subwayLogoDiv' style="display: block;">
+				<img src="subwayLogoAnimation.gif" id="subwayAnimation" style="display: none;"/>
+			</div>	
+ 	</div> 
+
+ 
+	<div id='logoDiv'>	
+		<img src="loopbreakerlogosmall.png" id="logo" class="logo"/>
+	</div>
+
+
+
+
+ 	
+
+	<div class='splashDiv' id='splashId' style="display: absolute;">
+		<img src="gif/0000.gif" class="adviceText" />
+	</div>
+
+	<div class='adviceDiv' id='adviceDiv1' style="display: none;">
+		<img src="gif/0001.gif" class="adviceText" />
+	</div>
+
+	<div class='adviceDiv' id='adviceDiv2' style="display: none;">
+		<img src="gif/0002.gif" class="adviceText" />
+	</div>
+
+
+	<div class='adviceDiv' id='adviceDiv3' style="display: none;">
+		<img src="gif/0003.gif" class="adviceText" />
+	</div>
+
+	<div class='adviceDiv' id='adviceDiv4' style="display: none;">
+		<img src="gif/0004.gif" class="adviceText" />
+	</div>
+
+	<div class='adviceDiv' id='adviceDiv5' style="display: none;">
+		<img src="gif/0005.gif" class="adviceText" />
+	</div>
+
+	<div class='adviceDiv' id='adviceDiv6' style="display: none;">
+		<img src="gif/0006.gif" class="adviceText" />
+	</div>
+
+	<div class='adviceDiv' id='adviceDiv7' style="display: none;">
+		<img src="gif/0007.gif" class="adviceText" />
+	</div>
+
+	<div class='adviceDiv' id='adviceDiv8' style="display: none;">
+		<img src="gif/0008.gif" class="adviceText" />
+	</div>
+
+
+	<div class='adviceDiv' id='adviceDiv9' style="display: none;">
+		<img src="gif/0009.gif" class="adviceText" />
+	</div>
+
+	<div class='adviceDiv' id='adviceDiv10' style="display: none;">
+		<img src="gif/0010.gif" class="adviceText" />
+	</div>
+
+	<div class='adviceDiv' id='adviceDiv11' style="display: none;">
+		<img src="gif/0011.gif" class="adviceText" />
+	</div>
+
+	<div class='adviceDiv' id='adviceDiv12' style="display: none;">
+		<img src="gif/0012.gif" class="adviceText" />
+	</div>
+	
+	<div class='adviceDiv' id='adviceDiv13' style="display: none;">
+		<img src="gif/0013.gif" class="adviceText" />
+	</div>
+
+
+	<div id='bottomWindowContainerDiv'>
+		<div id='bottomWindowDiv'>
+		<img src="bottom8ball.png"/>
+		</div>	
+	</div>
+	
+	<div id='topWindowContainerDiv'>
+		<div id='topWindowDiv'>
+		<img src="top8ball.png"/>
+		</div>	
+	</div>
+
+
+
+
+</div>
+</body>
+</html>
